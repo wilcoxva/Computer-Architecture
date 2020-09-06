@@ -13,27 +13,25 @@ class CPU:
 
         self.running = False
 
-    def load(self):
-        """Load a program into memory."""
-
+    def load(self, filename):
+        print(filename)
+        # Open a file and load into memory
         address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
-
+        try:
+            with open(filename) as f:
+                for line in f:
+                    # Split the current line on the # symbol
+                    split_line = line.split('#')
+                    code_value = split_line[0].strip() # removes whitespace and \n character
+                    # Make sure that the value before the # symbol is not empty
+                    if code_value == '':
+                        continue
+                    num = int(code_value)
+                    self.ram[address] = num
+                    address += 1
+        except FileNotFoundError: 
+            print(f"{sys.argv[1]} file not found")
+            sys.exit(2)
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -66,11 +64,14 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        LDI = 0b10000010
+        LDI = 10000010
         HLT = 0b00000001
         PRN = 0b01000111
+        MUL = 10100010
 
         running = True
+
+        self.load(sys.argv[1])
 
         while running:
             instruction = self.ram_read(self.pc)
@@ -90,6 +91,11 @@ class CPU:
                 val = self.ram_read(self.pc + 1)
                 print(self.reg[val])
                 self.pc += 2
+
+            elif instruction == MUL:
+                val = operand_a * operand_b
+                print(val)
+                self.pc += 4
 
             else:
                 print(f"Unknown instruction {instruction}")
