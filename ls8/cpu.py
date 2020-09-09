@@ -11,7 +11,7 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
 
-        self.running = False
+        self.running = True
 
     def load(self, filename):
         print(filename)
@@ -26,7 +26,7 @@ class CPU:
                     # Make sure that the value before the # symbol is not empty
                     if code_value == '':
                         continue
-                    num = int(code_value)
+                    num = int(code_value, 2)
                     self.ram[address] = num
                     address += 1
         except FileNotFoundError: 
@@ -64,17 +64,19 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        LDI = 10000010
+        LDI = 0b10000010
         HLT = 0b00000001
         PRN = 0b01000111
-        MUL = 10100010
+        MUL = 0b10100010
+        PUSH = 0b01000101
 
-        running = True
+        self.running = True
 
         self.load(sys.argv[1])
 
-        while running:
+        while self.running:
             instruction = self.ram_read(self.pc)
+            # print(instruction)
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -82,20 +84,41 @@ class CPU:
             if instruction == HLT:
                 self.running = False
                 self.pc += 1
+                print("in HLT")
 
             elif instruction == LDI:
+                print("in LDI")
                 self.reg[operand_a] = operand_b
                 self.pc += 3
 
             elif instruction == PRN:
                 val = self.ram_read(self.pc + 1)
                 print(self.reg[val])
+                print("in PRN")
                 self.pc += 2
 
             elif instruction == MUL:
-                val = operand_a * operand_b
-                print(val)
-                self.pc += 4
+                print("in MUL")
+                result = self.reg[operand_a] * self.reg[operand_b]
+                self.reg[operand_a] = result
+                self.pc += 3
+
+            elif instruction == PUSH:
+                """
+                Push the value in the given register on the stack.
+                1. Decrement the `SP`.
+                2. Copy the value in the given register to the address pointed to by
+                `SP`.
+                """
+                pass
+
+            elif instruction == POP:
+                """
+                Pop the value at the top of the stack into the given register.
+                1. Copy the value from the address pointed to by `SP` to the given register.
+                2. Increment `SP`.
+                """
+                pass
 
             else:
                 print(f"Unknown instruction {instruction}")
