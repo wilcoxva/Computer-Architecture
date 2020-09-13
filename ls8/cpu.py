@@ -10,6 +10,7 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.pc = 0
+        self.fl = [0] * 8
 
         self.running = True
 
@@ -68,7 +69,7 @@ class CPU:
         HLT = 0b00000001
         PRN = 0b01000111
         MUL = 0b10100010
-        PUSH = 0b01000101
+        CMP = 0b10100111
 
         self.running = True
 
@@ -103,21 +104,21 @@ class CPU:
                 self.reg[operand_a] = result
                 self.pc += 3
 
-            elif instruction == PUSH:
-                """
-                Push the value in the given register on the stack.
-                1. Decrement the `SP`.
-                2. Copy the value in the given register to the address pointed to by
-                `SP`.
-                """
+            elif instruction == CMP:
+                if self.reg[operand_a] == self.reg[operand_b]:
+                    self.fl &= 0b00000100
+                elif self.reg[operand_a] < self.reg[operand_b]:
+                    self.fl &= 0b00000010
+                elif self.reg[operand_a] > self.reg[operand_b]:
+                    self.fl &= 0b00000001
+
+            elif instruction == JMP:
                 pass
 
-            elif instruction == POP:
-                """
-                Pop the value at the top of the stack into the given register.
-                1. Copy the value from the address pointed to by `SP` to the given register.
-                2. Increment `SP`.
-                """
+            elif instruction == JEQ:
+                pass
+
+            elif instruction == JNE:
                 pass
 
             else:
