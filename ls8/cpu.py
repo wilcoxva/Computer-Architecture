@@ -51,7 +51,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -70,6 +70,9 @@ class CPU:
         PRN = 0b01000111
         MUL = 0b10100010
         CMP = 0b10100111
+        JMP = 0b01010100
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         self.running = True
 
@@ -77,49 +80,50 @@ class CPU:
 
         while self.running:
             instruction = self.ram_read(self.pc)
-            # print(instruction)
 
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
             if instruction == HLT:
                 self.running = False
-                self.pc += 1
-                print("in HLT")
 
             elif instruction == LDI:
-                print("in LDI")
                 self.reg[operand_a] = operand_b
                 self.pc += 3
 
             elif instruction == PRN:
                 val = self.ram_read(self.pc + 1)
                 print(self.reg[val])
-                print("in PRN")
                 self.pc += 2
 
             elif instruction == MUL:
-                print("in MUL")
                 result = self.reg[operand_a] * self.reg[operand_b]
                 self.reg[operand_a] = result
                 self.pc += 3
 
             elif instruction == CMP:
                 if self.reg[operand_a] == self.reg[operand_b]:
-                    self.fl &= 0b00000100
+                    self.fl[-3] = 1
                 elif self.reg[operand_a] < self.reg[operand_b]:
-                    self.fl &= 0b00000010
+                    self.fl[-2] = 1
                 elif self.reg[operand_a] > self.reg[operand_b]:
-                    self.fl &= 0b00000001
+                    self.fl[-1] = 1
+                self.pc += 3
 
             elif instruction == JMP:
-                pass
+                self.pc = self.reg[operand_a]
 
             elif instruction == JEQ:
-                pass
+                if self.fl[-3] == 1:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
 
             elif instruction == JNE:
-                pass
+                if self.fl[-3] == 0:
+                    self.pc = self.reg[operand_a]
+                else:
+                    self.pc += 2
 
             else:
                 print(f"Unknown instruction {instruction}")
